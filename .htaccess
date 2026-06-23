@@ -1,0 +1,24 @@
+# Modern Lanka Moters — Apache config
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Block access to sensitive paths
+    RewriteRule ^config/ - [F,L]
+    RewriteRule ^includes/ - [F,L]
+    RewriteRule ^database/ - [F,L]
+</IfModule>
+
+# Security headers
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# PHP settings (if allowed)
+<IfModule mod_php.c>
+    php_value upload_max_filesize 8M
+    php_value post_max_size 10M
+</IfModule>
+
+DirectoryIndex index.php
