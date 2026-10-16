@@ -2,6 +2,65 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/includes/bootstrap.php';
+require_once __DIR__ . '/includes/Stripe.php';
+
+// ── WHATSAPP POST HANDLER ────────────────────────────────────────
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['whatsapp_order'])) {
+
+    if (!verifyCsrf($_POST['csrf_token'] ?? null)) {
+        flash('error', 'Invalid request. Please try again.');
+        header('Location: ' . url('cart.php'));
+        exit;
+    }
+
+    $cartItems = getCartItems($pdo);
+    if (empty($cartItems)) {
+        flash('error', 'Your cart is empty.');
+        header('Location: ' . url('cart.php'));
+        exit;
+    }
+
+    $customerName  = trim($_POST['customer_name'] ?? '');
+    $customerPhone = trim($_POST['customer_phone'] ?? '');
+    $loggedInCustomer = getLoggedInCustomer($pdo);
+    if ($loggedInCustomer) {
+        if ($customerName  === '') $customerName  = $loggedInCustomer['name'];
+        if ($customerPhone === '') $customerPhone = $loggedInCustomer['phone'];
+    }
+    $notes    = trim($_POST['notes'] ?? '');
+    $subtotal = array_sum(array_column($cartItems, 'line_total'));
+    $orderRef = generateOrderRef();
+
+    $itemsForDb = array_map(fn($i) => [
+        'id'         => $i['id'],
+        'name'       => $i['name'],
+        'sku'        => $i['sku'],
+        'qty'        => $i['qty'],
+        'price'      => $i['price'],
+        'line_total' => $i['line_total'],
+    ], $cartItems);
+
+    $pdo->prepare(
+        'INSERT INTO orders
+         (order_ref, customer_name, customer_phone, items_json, subtotal, notes, source)
+         VALUES (?, ?, ?, ?, ?, ?, ?)'
+    )->execute([
+        $orderRef, $customerName, $customerPhone,
+        json_encode($itemsForDb), $subtotal, $notes, 'whatsapp',
+    ]);
+
+    $message = buildWhatsAppMessage($cartItems, $subtotal, $config, $customerName, $notes);
+    $message = "Order Ref: *{$orderRef}*\n\n" . $message;
+    $_SESSION['cart'] = [];
+    header('Location: ' . whatsappLink($config['whatsapp'], $message));
+    exit;
+}
+
+// Load Stripe config
+$stripeConfig = file_exists(__DIR__ . '/config/stripe.php')
+    ? require __DIR__ . '/config/stripe.php'
+    : null;
+$stripeEnabled = stripeIsConfigured($stripeConfig);
 
 $cartItems = getCartItems($pdo);
 $subtotal = array_sum(array_column($cartItems, 'line_total'));
@@ -14,7 +73,7 @@ require __DIR__ . '/includes/header.php';
 
 <div class="page-header animate-in">
     <h1>Shopping Cart</h1>
-    <p><?= count($cartItems) ?> item<?= count($cartItems) !== 1 ? 's' : '' ?> in your cart</p>
+    <p><?= cartCount() ?> item<?= cartCount() !== 1 ? 's' : '' ?> in your cart</p>
 </div>
 
 <?php if (empty($cartItems)): ?>
@@ -69,7 +128,8 @@ require __DIR__ . '/includes/header.php';
             <span id="cartTotal"><?= formatPrice($subtotal, $config) ?></span>
         </div>
 
-        <form action="<?= url('checkout.php') ?>" method="post" class="checkout-form">
+        <form action="<?= url('cart.php') ?>" method="post" class="checkout-form">
+            <input type="hidden" name="whatsapp_order" value="1">
             <?= csrfField() ?>
             <div class="form-group">
                 <label for="customer_name">Your Name</label>
@@ -92,10 +152,55 @@ require __DIR__ . '/includes/header.php';
             <p class="form-hint">You'll be redirected to WhatsApp with your order details pre-filled.</p>
         </form>
 
+        <?php if ($stripeEnabled): ?>
+        <div class="payment-divider">
+          <span>or pay securely online</span>
+        </div>
+
+        <div class="stripe-checkout-section glass-card">
+          <div class="stripe-checkout-header">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            <span>Pay Online with Stripe</span>
+            <span class="stripe-checkout-badge">Secure</span>
+          </div>
+          <p class="stripe-checkout-sub">Visa • Mastercard • Amex • International Cards</p>
+
+          <form action="<?= url('stripe-checkout.php') ?>" method="POST" id="stripe-order-form">
+            <input type="hidden" name="customer_name" value="<?= e($loggedInCustomer['name'] ?? '') ?>">
+            <input type="hidden" name="customer_phone" value="<?= e($loggedInCustomer['phone'] ?? '') ?>">
+            <input type="hidden" name="customer_email" value="">
+            <input type="hidden" name="notes" value="">
+            <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
+            
+            <button type="submit" class="btn btn--gold btn--full stripe-checkout-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Pay Rs. <?= number_format($subtotal, 0) ?> Securely
+            </button>
+          </form>
+
+          <p class="stripe-checkout-note">
+            You will be redirected to Stripe's secure payment page.
+            Your card details are never stored on our site.
+          </p>
+        </div>
+        <?php endif; ?>
+
         <a href="<?= url('products.php') ?>" class="btn btn--ghost btn--block">Continue Shopping</a>
     </aside>
 </div>
 
 <?php endif; ?>
+
+<script>
+document.getElementById('stripe-order-form')?.addEventListener('submit', function () {
+  const form = this;
+  const name = (document.getElementById('customer_name')?.value || '').trim();
+  const phone = (document.getElementById('customer_phone')?.value || '').trim();
+  const notes = (document.getElementById('notes')?.value || '').trim();
+  form.querySelector('input[name="customer_name"]').value = name;
+  form.querySelector('input[name="customer_phone"]').value = phone;
+  form.querySelector('input[name="notes"]').value = notes;
+});
+</script>
 
 <?php require __DIR__ . '/includes/footer.php'; ?>

@@ -1,0 +1,7 @@
+{
+    "name": "modern-lanka/motors",
+    "description": "Modern Lanka Motors",
+    "require": {
+        "stripe/stripe-php": "^13.0"
+    }
+}

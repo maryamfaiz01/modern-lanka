@@ -1,0 +1,28 @@
+# Windows metadata
+desktop.ini
+Thumbs.db
+
+# User-uploaded product images (keep the .gitkeep placeholder)
+uploads/products/*
+!uploads/products/.gitkeep
+
+# Logs (keep .gitkeep)
+logs/*
+!logs/.gitkeep
+
+# Database credentials — never commit
+config/database.php
+config/stripe.php
+
+# Dependencies & local tooling
+node_modules/
+composer.phar
+
+# SQL dumps / local exports (schema files in database/ stay tracked)
+MySQL/
+*.sql
+!database/schema.sql
+!database/schema.hosting.sql
+
+# OS files
+.DS_Store

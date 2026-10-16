@@ -1,21 +1,40 @@
-# Modern Lanka Moters — Apache config
+# Modern Lanka Motors — Apache config
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Block access to sensitive paths
     RewriteRule ^config/ - [F,L]
     RewriteRule ^includes/ - [F,L]
     RewriteRule ^database/ - [F,L]
+    RewriteRule ^logs/ - [F,L]
+    RewriteRule ^vendor/ - [F,L]
 </IfModule>
 
-# Security headers
+<FilesMatch "\.(sql|md)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+<FilesMatch "^composer\.(json|lock|phar)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
 <IfModule mod_headers.c>
     Header set X-Content-Type-Options "nosniff"
     Header set X-Frame-Options "SAMEORIGIN"
     Header set Referrer-Policy "strict-origin-when-cross-origin"
 </IfModule>
 
-# PHP settings (if allowed)
 <IfModule mod_php.c>
     php_value upload_max_filesize 8M
     php_value post_max_size 10M

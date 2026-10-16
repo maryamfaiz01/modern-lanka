@@ -1,97 +1,93 @@
-# Modern Lanka Moters
+# Modern Lanka Motors
 
-Premium automotive e-commerce website and admin system for Toyota Hiace, Dolphin, and HiRoof van spare parts and modifications — Sri Lanka.
+Premium e-commerce for Toyota Hiace, Dolphin, and HiRoof van parts and modifications (Sri Lanka).
 
 ## Features
 
-- **Dark luxury UI** with glassmorphism, gold accents, and smooth animations
-- **Top navbar + sidebar** for vehicle/category navigation
-- **Product catalog** with search, filters, sorting, and pagination
-- **Shopping cart** with session-based persistence
-- **WhatsApp ordering** — checkout opens WhatsApp with pre-filled order details
-- **Admin dashboard** — stats, orders, low-stock alerts
-- **Product management** — full CRUD with image uploads
-- **Responsive design** — mobile, tablet, and desktop
+- **Catalog** — search, filters, categories, vehicle models, pagination
+- **Cart** — session-based shopping cart
+- **Checkout** — WhatsApp orders and **Stripe** card payments
+- **Reviews** — star ratings, verified badges, helpful votes, full reviews page
+- **Customers** — register, login, **My Orders**
+- **Admin** — dashboard, product CRUD, orders, reports, invoices, stock, review moderation (Stripe refunds via Stripe Dashboard)
 
 ## Requirements
 
-- PHP 8.1+ (with PDO MySQL, fileinfo, sessions)
+- PHP 8.1+ (PDO MySQL, sessions, fileinfo)
 - MySQL 5.7+ or MariaDB 10.3+
-- Apache (XAMPP/WAMP) or nginx + PHP-FPM
+- [Composer](https://getcomposer.org/) (Stripe PHP SDK)
+- Apache with `mod_rewrite` (XAMPP or similar)
 
-## Quick Start (XAMPP on Windows)
+## Local setup (XAMPP)
 
-1. Copy this folder to `C:\xampp\htdocs\modern-lanka` (recommended — no spaces in URL).
+1. Clone or copy the project to `C:\xampp\htdocs\modern-lanka`.
+2. Start **Apache** and **MySQL** in XAMPP.
+3. Copy `config/database.example.php` to `config/database.php` and set MySQL credentials.
+4. Copy `config/stripe.example.php` to `config/stripe.php` and add your Stripe keys (optional for local WhatsApp-only testing).
+5. Run `composer install` in the project root (if `vendor/` is missing).
+6. Open `http://localhost/modern-lanka/install.php`, run **Install Database**, then **delete `install.php`**.
+7. Storefront: `http://localhost/modern-lanka/`  
+   Admin: `http://localhost/modern-lanka/admin/login.php` — change the default admin password after first login.
 
-   Or use the folder as-is: `C:\xampp\htdocs\Modern lanka`  
-   URL: `http://localhost/Modern%20lanka/` (note the `%20` for the space)
+Edit `config/app.php` for WhatsApp number, contact details, categories, and vehicle models.
 
-2. Start **Apache** and **MySQL** in XAMPP Control Panel.
+## Stripe setup
 
-3. Edit `config/database.php` if your MySQL credentials differ:
-   ```php
-   'username' => 'root',
-   'password' => '',
-   ```
+1. Copy `config/stripe.example.php` to `config/stripe.php`.
+2. Add **publishable**, **secret**, and **webhook** keys from the [Stripe Dashboard](https://dashboard.stripe.com/apikeys).
+3. Point a webhook to `https://your-domain/stripe-webhook.php` (events used by this app as configured in code).
 
-4. Edit `config/app.php` — set your real **WhatsApp number** (country code, no +):
-   ```php
-   'whatsapp' => '94771234567',
-   'whatsapp_display' => '+94 77 123 4567',
-   ```
-
-5. Open in browser:
-   ```
-   http://localhost/modern-lanka/install.php
-   ```
-   Click **Install Database**, then **delete `install.php`**.
-
-6. Visit the site:
-   - **Website:** `http://localhost/modern-lanka/`
-   - **Admin:** `http://localhost/modern-lanka/admin/login.php`
-     - Username: `admin`
-     - Password: `password`  
-     **Change this immediately** after first login.
-
-## Manual Database Setup
-
-```bash
-mysql -u root -p < database/schema.sql
-```
-
-## Project Structure
+## Project structure
 
 ```
-├── admin/              Admin dashboard & product management
-├── api/                Cart API (JSON)
-├── assets/             CSS, JS, images
-├── config/             App & database settings
-├── database/           SQL schema + seed data
-├── includes/           Shared PHP (header, functions, DB)
-├── uploads/products/   Product images
-├── index.php           Homepage
-├── products.php        Catalog
-├── product.php         Product detail
-├── cart.php            Shopping cart
-└── checkout.php        WhatsApp order handler
+modern-lanka/
+├── admin/                 Admin dashboard (products, orders, reports, invoices)
+├── api/                   JSON APIs (cart, reviews)
+├── assets/                CSS, JS, images
+├── config/                app.php, database.php, stripe.php (examples provided)
+├── database/              schema.sql, schema.hosting.sql
+├── includes/              bootstrap, DB, shared UI, Stripe gateway
+├── logs/                  PHP error log (production)
+├── uploads/products/      Product images (writable)
+├── vendor/                Composer dependencies (Stripe SDK)
+├── index.php              Homepage
+├── products.php           Catalog
+├── product.php            Product detail + reviews
+├── reviews.php            All reviews for a product
+├── cart.php               Cart & checkout
+├── checkout.php           WhatsApp order handler
+├── stripe-checkout.php    Stripe Checkout
+├── stripe-success.php     Payment success
+├── stripe-webhook.php     Stripe webhooks
+├── login.php / register.php / my-orders.php
+└── install.php            One-time DB setup (remove after use)
 ```
 
-## Customization
+## Security notes
 
-| Setting | File |
-|--------|------|
-| Business name, WhatsApp, contact | `config/app.php` |
-| Categories & vehicle models | `config/app.php` |
-| Database credentials | `config/database.php` |
-| Hero text & announcement | Admin → or `site_settings` table |
+- Never commit `config/database.php` or `config/stripe.php`.
+- Delete `install.php` after setup.
+- Use HTTPS in production; set strong admin and customer passwords.
+- `.htaccess` blocks direct access to `config/`, `includes/`, `database/`, `logs/`, `vendor/`, and sensitive file types.
+- Production hides PHP errors (`display_errors` off when not on localhost).
 
-## Security Notes
+## Deploy on InfinityFree
 
-- Delete `install.php` after setup
-- Change default admin password
-- Use HTTPS in production
-- Keep `config/` and `includes/` outside web root if possible (via vhost)
+1. Create a **MySQL database** in the InfinityFree control panel (note host, database name, username, password).
+2. In **phpMyAdmin**, import `database/schema.hosting.sql` (no `CREATE DATABASE` / `USE` — select your database first).
+3. Upload the full project to `htdocs/` (include the `vendor/` folder, or run `composer install` on a machine that can upload the result).
+4. Copy `config/database.example.php` to `config/database.php` and set InfinityFree MySQL host and credentials.
+5. Copy `config/stripe.example.php` to `config/stripe.php` with live or test keys as needed.
+6. Ensure `uploads/products/` and `logs/` exist and are writable.
+7. **Do not** upload `install.php` to production, or delete it immediately after a one-time local test import.
+8. Open your site URL; admin at `/admin/login.php`.
+
+Paths and asset URLs work at the domain root or in a subfolder (base URL is detected automatically).
+
+## Reviews (summary)
+
+Product pages show recent reviews and ratings; `reviews.php` lists all reviews with pagination. Customers can mark reviews helpful via `api/review-helpful.php`. Sample review data is included in the schema seed.
 
 ## License
 
-Proprietary — Modern Lanka Moters. All rights reserved.
+Proprietary — Modern Lanka Motors. All rights reserved.

@@ -53,6 +53,13 @@ function runSchema(PDO $pdo, string $schemaPath): void
     }
 }
 
+function upgradeExistingSchema(PDO $pdo, string $dbname): void
+{
+    $pdo->exec('USE `' . str_replace('`', '``', $dbname) . '`');
+    require_once __DIR__ . '/includes/schema_upgrade.php';
+    ensureOrdersSchema($pdo);
+}
+
 try {
     $pdo = connectServer($config);
     $alreadyInstalled = isDatabaseInstalled($pdo, $config['dbname']);
@@ -67,6 +74,7 @@ try {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$error) {
     try {
         runSchema($pdo, __DIR__ . '/database/schema.sql');
+        upgradeExistingSchema($pdo, $config['dbname']);
         $success = true;
         $alreadyInstalled = isDatabaseInstalled($pdo, $config['dbname']);
 
