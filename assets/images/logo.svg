@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 60" fill="none">
+  <!-- Icon - Stylized Van with Gear Element -->
+  <g transform="translate(0, 5)">
+    <!-- Van Body Silhouette -->
+    <path d="M8 20 L8 35 Q8 38 11 38 L22 38 Q25 38 25 35 L25 28 L32 28 Q35 28 36 25 L40 15 Q40 12 37 12 L25 12 L25 8 Q25 5 22 5 L11 5 Q8 5 8 8 Z" fill="#C41E3A" stroke="#1a1a1a" stroke-width="1.5"/>
+    
+    <!-- Wheel/Gear Element -->
+    <circle cx="18" cy="38" r="6" fill="#1a1a1a"/>
+    <circle cx="18" cy="38" r="3" fill="#C0C0C0"/>
+    <circle cx="18" cy="38" r="1.5" fill="#C41E3A"/>
+    
+    <!-- Gear Teeth -->
+    <path d="M18 30 L18 32 M18 44 L18 46 M10 38 L12 38 M24 38 L26 38 M12 32 L13.5 33.5 M23 42.5 L24.5 44 M12 44 L13.5 42.5 M23 33.5 L24.5 32" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round"/>
+    
+    <!-- Body Panel Accent -->
+    <path d="M25 12 L25 20 L35 20" stroke="#C0C0C0" stroke-width="1" fill="none"/>
+  </g>
+  
+  <!-- Company Name -->
+  <text x="50" y="25" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" fill="#1a1a1a" letter-spacing="1">MODERN</text>
+  <text x="50" y="45" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" fill="#C41E3A" letter-spacing="1">LANKA MOTERS</text>
+  
+  <!-- Tagline -->
+  <text x="50" y="55" font-family="Arial, Helvetica, sans-serif" font-size="7" font-weight="400" fill="#666" letter-spacing="0.5">VAN BODY PARTS • SPARE PARTS • MODIFICATIONS</text>
+</svg>
