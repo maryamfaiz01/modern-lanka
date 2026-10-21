@@ -10,12 +10,12 @@ Premium E-commerce store for Toyota **Hiace, Dolphin and HiRoof** van parts and 
 
 ## Features
 
-**Storefront:** search, category / vehicle-model filters, pagination, session cart, product reviews (star ratings, verified badges, "helpful" votes), customer accounts and order history.
-**Checkout:** Stripe Checkout (cards) or one-tap WhatsApp order.
-**Admin panel:** dashboard, product CRUD with image upload, order management, printable invoices, sales reports, review moderation, stock tracking ,review moderation (Stripe refunds via Stripe Dashboard).
-**Reviews** — star ratings, verified badges, helpful votes, full reviews page
-**Customers** — register, login, **My Orders**
-**Cart** — session-based shopping car
+- **Storefront:**  —  search, category / vehicle-model filters, pagination, session cart, product reviews (star ratings, verified badges, "helpful" votes), customer accounts and order history.
+- **Checkout:**  —  Stripe Checkout (cards) or one-tap WhatsApp order.
+- **Admin panel:**  — dashboard, product CRUD with image upload, order management, printable invoices, sales reports, review moderation, stock tracking ,review moderation (Stripe refunds via Stripe Dashboard).
+- **Reviews** — star ratings, verified badges, helpful votes, full reviews page
+- **Customers** — register, login, **My Orders**
+- **Cart** — session-based shopping car
 
 ## Tech stack
 
